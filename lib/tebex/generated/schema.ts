@@ -117,6 +117,8 @@ export interface paths {
      * Add packages to a dynamic category for a basket.
      * @description Populates a dynamic category with custom packages for the given basket. Dynamic categories are created in the creator panel with the type `dynamic`, and are typically populated in response to a `basket.authenticated` webhook.
      *
+     *     Requires basic auth: the username is the webstore identifier and the password is the account's checkout API key.
+     *
      *     Once created, the packages can be fetched using the category endpoints with both `includePackages=1` and `basketIdent` provided.
      */
     put: operations["createDynamicPackage"];
@@ -280,7 +282,10 @@ export interface paths {
     };
     /**
      * Get package
-     * @description Gets a package from a webstore by its ID or slug.
+     * @description Gets a package from a webstore by its `ident` or numeric ID.
+     *
+     *     - Using `ident` is recommended, since it works for every package type. Send it back exactly as returned; don't build or parse it.
+     *     - `id` stays numeric for standard packages. For external packages `id` is synthetic, so always use `ident`.
      *
      *     Note: this endpoint does not support packages belonging to dynamic categories. Use the category endpoints with `includePackages=1` and `basketIdent` to fetch dynamic packages.
      */
@@ -506,7 +511,10 @@ export interface paths {
     put?: never;
     /**
      * Add package to basket
-     * @description Add a package with the given ID to the basket.
+     * @description Add a package to the basket by its `ident` or numeric ID.
+     *
+     *     - Using `ident` is recommended, since it works for every package type. It is required for external packages.
+     *     - Numeric IDs still work for standard packages.
      *
      *     To add a package belonging to a dynamic category, set `dynamic` to `true`. Without this property the API will treat the request as a normal package ID.
      */
@@ -528,7 +536,10 @@ export interface paths {
     put?: never;
     /**
      * Remove a package from a basket
-     * @description Remove the given package ID from the basket.
+     * @description Remove a package from the basket by its `ident` or numeric ID.
+     *
+     *     - Using `ident` is recommended, since it works for every package type. Send it back exactly as returned; don't build or parse it.
+     *     - Numeric IDs still work for standard packages.
      */
     post: operations["removeBasketPackage"];
     delete?: never;
@@ -548,6 +559,9 @@ export interface paths {
     /**
      * Update package quantity
      * @description Sets the quantity of the given item in the basket. The user must be logged in before the quantity can be changed.
+     *
+     *     - `{packageId}` accepts the package's `ident` or numeric ID. Using `ident` is recommended, since it works for every package type.
+     *     - Numeric IDs still work for standard packages.
      */
     put: operations["updatePackageQuantity"];
     post?: never;
@@ -589,6 +603,129 @@ export interface paths {
      * @description Retrieves the available sidebar modules configured for the store.
      */
     get: operations["getSidebar"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/sales": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the webstore's active sales.
+     * @description Lists the store's currently active sales, in the same order as the control panel. No authentication is required.
+     *
+     *     - Only sales whose start/end window includes the current time are returned. Expired sales, future sales and Lighthouse sales are left out.
+     *     - Hidden packages and categories (disabled, removed, unpublished, or inside a disabled category) are left out of every array.
+     *     - If there are no active sales, `data` is an empty array.
+     */
+    get: operations["getSales"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/recent-payments": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the webstore's recent payments.
+     * @description Lists the store's most recent payments, newest first. This does not depend on the sidebar's Recent Payments module being configured.
+     *
+     *     Requires basic auth: the username is the webstore identifier and the password is the account's checkout API key.
+     *
+     *     - Free, manual, zero-price and incomplete payments are never included.
+     *     - Responses are cached for 10 minutes.
+     *     - If there are no payments, `data` is an empty array.
+     */
+    get: operations["getRecentPayments"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/top-customers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the webstore's top customer.
+     * @description Gets the customer who spent the most in the given period. This does not depend on the sidebar's Top Customer module being configured.
+     *
+     *     Requires basic auth: the username is the webstore identifier and the password is the account's checkout API key.
+     *
+     *     - `total` is in the account's currency, net of tax, and matches the revenue statistics in the control panel.
+     *     - Free, manual, zero-price and incomplete payments are never counted.
+     *     - Responses are cached for 10 minutes.
+     *     - If there is no top customer for the period, `data` is null.
+     */
+    get: operations["getTopCustomer"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/community-goals": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the webstore's community goals.
+     * @description Lists the store's community goals. This does not depend on the sidebar's Community Goal module being configured.
+     *
+     *     Requires basic auth: the username is the webstore identifier and the password is the account's checkout API key.
+     *
+     *     If there are no matching goals, `data` is an empty array.
+     */
+    get: operations["getCommunityGoals"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/community-goals/{communityGoalId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get a community goal.
+     * @description Gets a single community goal by its ID.
+     *
+     *     Requires basic auth: the username is the webstore identifier and the password is the account's checkout API key.
+     */
+    get: operations["getCommunityGoal"];
     put?: never;
     post?: never;
     delete?: never;
@@ -653,6 +790,16 @@ export interface components {
        * @example 2023-05-25T09:49:37+00:00
        */
       created_at?: string;
+      /**
+       * @description True if the store's platform identifies customers by username.
+       * @example true
+       */
+      supports_usernames?: boolean;
+      /**
+       * @description True if packages can be gifted to another user.
+       * @example false
+       */
+      supports_gifting?: boolean;
     };
     /** @description Wrapped webstore information in a "data" object. */
     WebstoreResponse: {
@@ -825,6 +972,9 @@ export interface components {
     CategoryResponse: {
       data?: components["schemas"]["Category"][];
     };
+    SingleCategoryResponse: {
+      data?: components["schemas"]["Category"];
+    };
     Category: {
       /** @example 2678660 */
       id?: number;
@@ -876,8 +1026,14 @@ export interface components {
     PackageResponse: {
       data?: components["schemas"]["Package"][];
     };
+    SinglePackageResponse: {
+      data?: components["schemas"]["Package"];
+    };
     Package: {
-      /** @example 6276316 */
+      /**
+       * @description The package's numeric ID. For external packages this is synthetic; use `ident` instead.
+       * @example 6276316
+       */
       id?: number;
       /** @example test package 101 */
       name?: string;
@@ -946,6 +1102,18 @@ export interface components {
        * @example 2024-05-21T18:09:17+00:00
        */
       updated_at?: string;
+      /**
+       * @description The package's string identifier, returned on every package (standard, dynamic and external). Treat it as an opaque string: store it and send it back as-is to `getPackage` and `addBasketPackage`; don't build or parse it.
+       *
+       *     It has the form `{prefix}_{categoryId}_{id}`, where `prefix` is `pkg` (standard), `dyn` (dynamic, numeric id) or `ext` (external, e.g. `ext_10_{asset-uuid}` for INTRACT, with the provider's identifier URL-encoded).
+       * @example pkg_12_456
+       */
+      ident?: string;
+      /**
+       * @description The package's VIP status. Only `null` has been observed so far, so the non-null type is unconfirmed.
+       * @example null
+       */
+      vip_status?: string | null;
     };
     /** @description A package within an existing basket. */
     BasketPackage: {
@@ -980,6 +1148,11 @@ export interface components {
       type?: "single" | "subscription";
       /** @description An array of payment destination objects describing how the purchase should be split between multiple wallets. **Only available with pre-agreement from Tebex.** */
       revenue_share?: components["schemas"]["RevenueShare"][];
+      /**
+       * @description Whether this package is a recurring (subscription) purchase.
+       * @example false
+       */
+      is_recurring?: boolean;
     };
     RevenueShare: {
       /** @example some_wallet_reference */
@@ -1066,12 +1239,17 @@ export interface components {
     };
     DynamicPackagesRequest: {
       /**
+       * @description The basket's ident. Use the same value as the `basketIdent` path parameter.
+       * @example dvcbln-d7f6355161726d63e6dbe235ca25d2641184295b
+       */
+      basket_id: string;
+      /**
        * @description The username of the authenticated customer the packages are being created for.
        * @example TestUser
        */
       username: string;
       /**
-       * @description The ID of the dynamic category to populate.
+       * @description The ID of the dynamic category to populate. Must be a category of type `dynamic`.
        * @example 1234
        */
       category_id: number;
@@ -1105,7 +1283,7 @@ export interface components {
       };
     };
     DynamicPackagesResponse: {
-      /** @example Dynamic packages created successfully. */
+      /** @example Dynamic packages updated successfully. */
       message?: string;
     };
     ModulesResponse: {
@@ -1334,6 +1512,228 @@ export interface components {
       /** @description Optional, present depending on module configuration. */
       times_achieved?: null | number;
     };
+    SalesResponse: {
+      /** @description Active sales, in control panel order. Empty when there are none. */
+      data: components["schemas"]["Sale"][];
+    };
+    Sale: {
+      /** @example 14 */
+      id: number;
+      /** @example Summer Sale */
+      name: string;
+      /**
+       * Format: date-time
+       * @description Start of the sale, ISO 8601 in UTC.
+       * @example 2026-10-04T13:59:09+00:00
+       */
+      starts_at: string;
+      /**
+       * Format: date-time
+       * @description End of the sale, ISO 8601 in UTC.
+       * @example 2026-10-19T13:59:09+00:00
+       */
+      ends_at: string;
+      discount: components["schemas"]["SaleDiscount"];
+      applies_to: components["schemas"]["SaleAppliesTo"];
+      /** @description Conditions a customer must meet for the sale to apply. Empty when the sale has none. `minimum_basket_value` can appear alongside `purchased_packages` or `lifetime_spend`. */
+      requirements: components["schemas"]["SaleRequirement"][];
+    };
+    SaleDiscount: {
+      /**
+       * @example percentage
+       * @enum {string}
+       */
+      type: "percentage" | "amount" | "commands";
+      /**
+       * @description Set only when `type` is `percentage`, otherwise null.
+       * @example 20
+       */
+      percentage: null | number;
+      /**
+       * @description Set only when `type` is `amount`, otherwise null.
+       * @example null
+       */
+      amount: null | number;
+      /**
+       * @description The store currency.
+       * @example USD
+       */
+      currency: string;
+    };
+    /** @description What the sale applies to. Only the array matching `type` is filled; the others are empty. When `type` is `all`, only `excluded_packages` may be filled. */
+    SaleAppliesTo: {
+      /**
+       * @example all
+       * @enum {string}
+       */
+      type: "all" | "package" | "category" | "variable_option";
+      /** @description Filled when `type` is `package`. */
+      packages: components["schemas"]["SaleReference"][];
+      /** @description Filled when `type` is `category`. */
+      categories: components["schemas"]["SaleReference"][];
+      /** @description Filled when `type` is `variable_option`. */
+      variable_options: components["schemas"]["SaleReference"][];
+      /** @description Packages excluded from the sale. Filled only when `type` is `all`. */
+      excluded_packages: components["schemas"]["SaleReference"][];
+    };
+    /** @description A package, category or variable option referenced by a sale. */
+    SaleReference: {
+      /** @example 28 */
+      id: number;
+      /** @example GIFTCARD */
+      name: string;
+    };
+    /**
+     * @description A condition for the sale. Fields present depend on `type`:
+     *     - `purchased_packages`: `packages` and `match` (always `all`). `packages` is empty if every required package is hidden.
+     *     - `lifetime_spend`: `amount` and `currency`.
+     *     - `minimum_basket_value`: `amount` and `currency`.
+     */
+    SaleRequirement: {
+      /**
+       * @description The type of requirement for the sale. Additional requirement types may be added later. Clients must ignore requirement types they do not know.
+       * @example lifetime_spend
+       * @enum {string}
+       */
+      type: "purchased_packages" | "lifetime_spend" | "minimum_basket_value";
+      /** @description Packages the customer must have purchased. Present for `purchased_packages`. */
+      packages?: components["schemas"]["SaleReference"][];
+      /**
+       * @description Present for `purchased_packages`. Always `all`.
+       * @enum {string}
+       */
+      match?: "all";
+      /**
+       * @description Present for `lifetime_spend` and `minimum_basket_value`.
+       * @example 50
+       */
+      amount?: number;
+      /**
+       * @description Present for `lifetime_spend` and `minimum_basket_value`. The store currency.
+       * @example USD
+       */
+      currency?: string;
+    };
+    RecentPaymentsResponse: {
+      /** @description Recent payments, newest first. Empty when there are none. */
+      data: components["schemas"]["RecentPaymentEntry"][];
+    };
+    RecentPaymentEntry: {
+      /** @example 2728 */
+      id: number;
+      /** @example 12345 */
+      username: string;
+      /** @example 6379162 */
+      username_id: string;
+      /**
+       * Format: uri
+       * @example https://avatars.discourse-cdn.com/v4/letter/1/ec9cab/256.png
+       */
+      avatar_url: string;
+      /**
+       * @description The first package on the payment. If the payment holds more, it is suffixed, e.g. "+ 1 more".
+       * @example This is another package + 1 more
+       */
+      package_name: string;
+      /**
+       * Format: date-time
+       * @example 2026-09-17T07:15:49+00:00
+       */
+      created_at: string;
+      /** @example 2.99 */
+      price: number;
+      /** @example USD */
+      currency: string;
+    };
+    TopCustomerResponse: {
+      /** @description The top customer, or null when there is none for the period. */
+      data: null | components["schemas"]["TopCustomer"];
+    };
+    TopCustomer: {
+      /** @example George_Peel */
+      username: string;
+      /** @example 15413447 */
+      username_id: string;
+      /**
+       * Format: uri
+       * @example https://forum.cfx.re/user_avatar/forum.cfx.re/george_peel/256/4582854_2.png
+       */
+      avatar_url: string;
+      /**
+       * @description Amount spent in the period, in the account's currency, net of tax.
+       * @example 21.99
+       */
+      total: number;
+      /** @example USD */
+      currency: string;
+      /**
+       * @description The period requested.
+       * @example monthly
+       * @enum {string}
+       */
+      period: "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "none";
+    };
+    CommunityGoalsResponse: {
+      /** @description Community goals. Empty when none match. */
+      data: components["schemas"]["CommunityGoal"][];
+    };
+    CommunityGoalResponse: {
+      data: components["schemas"]["CommunityGoal"];
+    };
+    CommunityGoal: {
+      /** @example 1 */
+      id: number;
+      /** @example New Server */
+      name: string;
+      /** @example Fund a second server */
+      description: string;
+      /**
+       * Format: uri
+       * @example null
+       */
+      image_url: null | string;
+      /**
+       * @description The goal amount, in `currency`.
+       * @example 1000
+       */
+      target: number;
+      /**
+       * @description The amount raised so far, in `currency`.
+       * @example 630
+       */
+      current: number;
+      /**
+       * @description The account currency.
+       * @example USD
+       */
+      currency: string;
+      /** @example 63 */
+      percentage: number;
+      /** @example false */
+      repeatable: boolean;
+      /** @example 0 */
+      times_achieved: number;
+      /**
+       * Format: date-time
+       * @example null
+       */
+      last_achieved: null | string;
+      /**
+       * @example active
+       * @enum {string}
+       */
+      status: "active" | "completed" | "disabled";
+      /**
+       * Format: date-time
+       * @example 2026-09-17T11:44:46+00:00
+       */
+      created_at: string;
+      /**
+       * Format: date-time
+       * @example 2026-09-17T11:44:46+00:00
+       */
+      updated_at: string;
+    };
   };
   responses: never;
   parameters: {
@@ -1520,12 +1920,14 @@ export interface operations {
           "application/json": components["schemas"]["DynamicPackagesResponse"];
         };
       };
-      /** @description The provided request is invalid. The error response will include detail as to which parameter failed validation. */
+      /** @description The request is invalid. The error response will include detail as to which parameter failed validation. This is also returned when basic auth credentials are missing ("Basic auth credentials are required") or when `category_id` is not a dynamic category ("The specified category is not a dynamic category."). */
       422: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
       };
     };
   };
@@ -1619,8 +2021,8 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description The basket identifier. */
-        basketIdent: components["parameters"]["basketIdent"];
+        /** @description The ID or slug of the category to fetch. */
+        categoryId: string;
       };
       cookie?: never;
     };
@@ -1632,7 +2034,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["CategoryResponse"];
+          "application/json": components["schemas"]["SingleCategoryResponse"];
         };
       };
     };
@@ -1655,7 +2057,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["CategoryResponse"];
+          "application/json": components["schemas"]["SingleCategoryResponse"];
         };
       };
     };
@@ -1680,7 +2082,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["CategoryResponse"];
+          "application/json": components["schemas"]["SingleCategoryResponse"];
         };
       };
     };
@@ -1690,7 +2092,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description The package's ID or slug. */
+        /** @description The package's `ident` (recommended, e.g. `pkg_12_456`) or numeric ID. */
         packageId: string;
       };
       cookie?: never;
@@ -1703,7 +2105,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["PackageResponse"];
+          "application/json": components["schemas"]["SinglePackageResponse"];
         };
       };
     };
@@ -2039,7 +2441,10 @@ export interface operations {
     requestBody?: {
       content: {
         "application/json": {
-          /** @example 6276316 */
+          /**
+           * @description The package's `ident` (recommended) or numeric ID. `ident` is required for external packages. Send the `ident` exactly as returned by the package endpoints.
+           * @example pkg_12_456
+           */
           package_id: string;
           /** @example 1 */
           quantity: number;
@@ -2058,10 +2463,19 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Basket"];
+          "application/json": components["schemas"]["BasketResponse"];
         };
       };
-      /** @description The provided request is invalid. The error response will include detail as to which parameter failed validation. */
+      /** @description The ident is unknown or does not match a package in this store ("The selected id is invalid."). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description The provided request is invalid. The error response will include detail as to which parameter failed validation. A malformed `package_id` fails with "package_id must be a package ID or ident." */
       422: {
         headers: {
           [name: string]: unknown;
@@ -2083,7 +2497,10 @@ export interface operations {
     requestBody?: {
       content: {
         "application/json": {
-          /** @example 6276316 */
+          /**
+           * @description The package's `ident` (recommended) or numeric ID.
+           * @example pkg_12_456
+           */
           package_id?: string;
         };
       };
@@ -2095,7 +2512,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Basket"];
+          "application/json": components["schemas"]["BasketResponse"];
         };
       };
       /** @description The provided request is invalid. The error response will include detail as to which parameter failed validation. */
@@ -2114,6 +2531,8 @@ export interface operations {
       path: {
         /** @description The basket identifier. */
         basketIdent: components["parameters"]["basketIdent"];
+        /** @description The package's `ident` (recommended) or numeric ID. */
+        packageId: string;
       };
       cookie?: never;
     };
@@ -2191,6 +2610,144 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ModulesResponse"];
+        };
+      };
+    };
+  };
+  getSales: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response returns the active sales. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SalesResponse"];
+        };
+      };
+      /** @description The store identifier is invalid. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getRecentPayments: {
+    parameters: {
+      query?: {
+        /** @description The number of payments to return, from 1 to 50. */
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response returns the recent payments. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RecentPaymentsResponse"];
+        };
+      };
+    };
+  };
+  getTopCustomer: {
+    parameters: {
+      query?: {
+        /** @description The period to rank customers over. `none` covers all time. */
+        period?: "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "none";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response returns the top customer, or null. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TopCustomerResponse"];
+        };
+      };
+    };
+  };
+  getCommunityGoals: {
+    parameters: {
+      query?: {
+        /** @description Only return goals with these statuses, e.g. `status[]=active&status[]=completed`. A single `status=active` is also accepted. With no filter, all goals are returned. */
+        "status[]"?: ("active" | "completed" | "disabled")[];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response returns the community goals. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CommunityGoalsResponse"];
+        };
+      };
+    };
+  };
+  getCommunityGoal: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The community goal ID. */
+        communityGoalId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response returns the community goal. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CommunityGoalResponse"];
+        };
+      };
+      /** @description No community goal with that ID exists for this account. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "status": 404,
+           *       "type": "about:blank",
+           *       "title": "Community goal not found",
+           *       "detail": "No community goal with that ID exists for this account"
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
